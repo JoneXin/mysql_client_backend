@@ -1,0 +1,40 @@
+
+# 查询所有连接接口
+GET http://127.0.0.1:4545/conn/connectionlist
+
+###
+
+# 新增连接接口
+POST http://127.0.0.1:4545/conn/newconnection
+content-type: application/json
+
+{  
+    "connection_name": "asdasd",
+    "host": "192.168.0.32",
+    "port": "3306",
+    "user": "root",
+    "password": "Leaper@123"
+}
+
+###
+
+# 删除连接接口
+GET  http://127.0.0.1:4545/conn/delconnection?connection_name=asdasd
+
+###
+
+# 更新连接信息接口
+POST http://127.0.0.1:4545/conn/updateconnection
+content-type: application/json
+
+{
+    "uid": 12,
+    "connection_name": "asdasdasd---asd",
+    "host": "192.168.0.32",
+    "port": "3306",
+    "user": "root",
+    "password": "Leaper@123"
+}
+
+### 
+
