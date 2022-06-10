@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConnModule } from './modules/connection/conn.moudel';
+import { DbModule } from './modules/database/db.moudel';
 @Module({
   imports: [
     TypeOrmModule.forRootAsync({
@@ -18,6 +19,7 @@ import { ConnModule } from './modules/connection/conn.moudel';
       }),
     }),
     ConnModule,
+    DbModule,
   ],
 })
 export class AppModule {}

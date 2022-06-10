@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+
+<body>
+    <div class="container" id="editor">
+
+    </div>
+    <style>
+        .container {
+            height: 500px;
+            width: 500px;
+            border: 1px solid;
+        }
+    </style>
+    <script></script>
+    <script>
+        let editorRef = document.getElementById('editor');
+        let editor = ace.edit(editorRef, {
+            theme: 'ace/theme/sqlserver',
+        });
+
+        const session = this.editor.session;
+        session.setMode('ace/mode/sql', function () {
+            const rules = session.$mode.$highlightRules.getRules();
+            for (const stateName in rules) {
+                rules[stateName].unshift({
+                    token: 'keyword',
+                    regex: 'msck',
+                    caseInsensitive: true,
+                });
+            }
+            // force recreation of tokenizer
+            session.$mode.$tokenizer = null;
+            session.bgTokenizer.setTokenizer(session.$mode.getTokenizer());
+            // force re-highlight whole document
+            session.bgTokenizer.start(0);
+        });
+    </script>
+</body>
+
+</html>

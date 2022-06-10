@@ -8,6 +8,6 @@ import { ConnService } from './conn.service';
   controllers: [ConnController],
   imports: [TypeOrmModule.forFeature([ConnectionList])],
   providers: [ConnService],
-  exports: [],
+  exports: [ConnService],
 })
 export class ConnModule {}

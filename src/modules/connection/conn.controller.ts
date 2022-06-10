@@ -18,8 +18,8 @@ export class ConnController {
   }
 
   @Get('/delconnection')
-  async delConnection(@Query() param: DelConnDto): Promise<boolean> {
-    return await this.connService.delConnection(param);
+  async delConnection(@Query() param): Promise<boolean> {
+    return await this.connService.delConnection(param.uid);
   }
 
   @Post('/updateconnection')
@@ -27,5 +27,10 @@ export class ConnController {
     @Body() updateConnConf: UpdateConnDto,
   ): Promise<boolean> {
     return await this.connService.updateConnection(updateConnConf);
+  }
+
+  @Post('/testconnection')
+  async testConnection(@Body() connConf: ConnMysqlDto): Promise<boolean> {
+    return await this.connService.testConnection(connConf);
   }
 }

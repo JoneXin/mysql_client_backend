@@ -38,3 +38,14 @@ content-type: application/json
 
 ### 
 
+POST http://127.0.0.1:4545/conn/testconnection
+content-type: application/json
+
+{
+    "connection_name": "本都",
+    "host": "127.0.0.1",
+    "port":"3306",
+    "user": "root",
+    "password": "Leaper@123"
+}
+
