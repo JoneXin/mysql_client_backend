@@ -9,4 +9,6 @@ export interface ConnMysqlConf {
   user: string;
   // 密码
   password: string;
+
+  database?: string
 }

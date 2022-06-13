@@ -1,6 +1,7 @@
 import { ConnMysqlConf } from './../connection/conn.class';
 import { Body, Controller, Get, Post, Query } from '@nestjs/common';
 import { DbService } from './db.service';
+import { DbQueryConfig } from './db.class';
 
 @Controller('db')
 export class DbController {
@@ -12,7 +13,8 @@ export class DbController {
   }
 
   @Post('/query')
-  async getAllConnectionList(@Body() queryObj) {
+  async querySql(@Body() queryObj: DbQueryConfig) {
     return await this.dbService.query(queryObj);
   }
+
 }

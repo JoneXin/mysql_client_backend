@@ -16,6 +16,7 @@ export class TableService {
     const [lists] = await conn
       .promise()
       .query(`show tables from ${dbConf.database}`);
-    return (lists as Array<any>).map((item) => item[0]);
+      console.log(lists);
+    return (lists as Array<any>).map((item) => item[`Tables_in_${dbConf.database}`]);
   }
 }

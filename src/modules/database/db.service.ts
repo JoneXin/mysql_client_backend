@@ -1,6 +1,6 @@
 import { ConnMysqlConf } from './../connection/conn.class';
 import { Injectable } from '@nestjs/common';
-import { Connection } from 'mysql2';
+import { Connection, FieldPacket } from 'mysql2';
 import { ConnService } from '../connection/conn.service';
 import { DbQueryConfig } from './db.class';
 
@@ -15,8 +15,8 @@ export class DbService {
 
     try {
       const [lists] = await conn.promise().query('show databases');
-      console.log(lists);
-      return (lists as Array<any>).map((item) => item[0]);
+
+      return (lists as Array<any>).map((item) => item.Database);
     } catch (error) {
       return [error];
     }
@@ -27,10 +27,23 @@ export class DbService {
    * @param queryObj
    * @returns
    */
-  async query(queryObj: DbQueryConfig): Promise<boolean> {
+  async query(queryObj: DbQueryConfig): Promise<any> {
     const conn = this.getCurrentConnHandle(queryObj);
-    await conn.query(queryObj.query_content);
-    return true;
+    try {
+      let [list, fields] = await conn.promise().query(queryObj.query_content);
+      return {
+        list,
+        fields: fields.map((item) => ({
+          title: item.name,
+          key: item.name,
+          dataIndex: item.name,
+          type: item.type,
+          decimals: item.decimals,
+        })),
+      };
+    } catch (error) {
+      throw error;
+    }
   }
 
   /**

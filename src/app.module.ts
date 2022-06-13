@@ -8,7 +8,7 @@ import { DbModule } from './modules/database/db.moudel';
     TypeOrmModule.forRootAsync({
       useFactory: () => ({
         type: 'mysql',
-        host: '127.0.0.1',
+        host: '101.43.105.27',
         port: 3306,
         username: 'root',
         password: 'Leaper@123',

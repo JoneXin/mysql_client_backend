@@ -36,6 +36,7 @@ export function getConnection(connConf: ConnMysqlConf): Connection {
     user: connConf.user,
     password: connConf.password,
     charset: 'utf8mb4',
-    rowsAsArray: true,
+    rowsAsArray: false,
+    nestTables: false,
   });
 }
