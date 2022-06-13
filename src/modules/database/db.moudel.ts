@@ -6,6 +6,6 @@ import { DbService } from './db.service';
   controllers: [DbController],
   imports: [ConnModule],
   providers: [DbService],
-  exports: [],
+  exports: [DbService],
 })
 export class DbModule {}

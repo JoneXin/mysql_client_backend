@@ -1,3 +1,4 @@
+import { TableModule } from './modules/table/table.moudel';
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConnModule } from './modules/connection/conn.moudel';
@@ -20,6 +21,7 @@ import { DbModule } from './modules/database/db.moudel';
     }),
     ConnModule,
     DbModule,
+    TableModule,
   ],
 })
 export class AppModule {}

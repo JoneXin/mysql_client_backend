@@ -34,7 +34,7 @@ export class DbService {
   }
 
   /**
-   * 根据连接名获取连接对象
+   * 根据连接配置获取连接对象
    * @param connName
    * @returns
    */
