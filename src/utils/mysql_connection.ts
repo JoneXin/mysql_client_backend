@@ -40,3 +40,7 @@ export function getConnection(connConf: ConnMysqlConf): Connection {
     nestTables: false,
   });
 }
+
+export function createDatabase(encode) {
+  return 'CREATE DATABASE /*!32312 IF NOT EXISTS*/ `test` /*!40100 DEFAULT CHARACTER SET utf8 */;';
+}

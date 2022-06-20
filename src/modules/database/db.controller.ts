@@ -2,6 +2,7 @@ import { ConnMysqlConf } from './../connection/conn.class';
 import { Body, Controller, Get, Post, Query } from '@nestjs/common';
 import { DbService } from './db.service';
 import { DbQueryConfig } from './db.class';
+import { SyncConf } from './db.dto';
 
 @Controller('db')
 export class DbController {
@@ -17,4 +18,9 @@ export class DbController {
     return await this.dbService.query(queryObj);
   }
 
+  @Post('/sync')
+  async syncDatabases(@Body() syncObj: SyncConf) {
+    this.dbService.syncDatabases(syncObj);
+    return true;
+  }
 }

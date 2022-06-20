@@ -1,3 +1,4 @@
+import { SysModule } from './modules/system/sys.moudel';
 import { TableModule } from './modules/table/table.moudel';
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
@@ -8,7 +9,7 @@ import { DbModule } from './modules/database/db.moudel';
     TypeOrmModule.forRootAsync({
       useFactory: () => ({
         type: 'mysql',
-        host: '101.43.105.27',
+        host: '127.0.0.1',
         port: 3306,
         username: 'root',
         password: 'Leaper@123',
@@ -22,6 +23,7 @@ import { DbModule } from './modules/database/db.moudel';
     ConnModule,
     DbModule,
     TableModule,
+    SysModule,
   ],
 })
 export class AppModule {}
