@@ -10,3 +10,11 @@ export interface ConnMysqlConf {
   // 密码
   password: string;
 }
+
+export interface ExportConf {
+  isExportTableData: boolean;
+  isExportPureStruct: boolean;
+  isAutoCreateDb: boolean;
+  isForceUpdateDb: boolean;
+  isForceUpdateTable: boolean;
+}

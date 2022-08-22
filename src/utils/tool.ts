@@ -1,6 +1,10 @@
+import { ConnMysqlConf } from './../modules/connection/conn.class';
 import { Connection } from 'mysql2';
 import { exec } from 'shelljs';
-
+import { ExportConf } from '../typings';
+import { resolve } from 'path';
+import fs from 'fs-extra';
+import { readFileSync, writeFileSync } from 'fs';
 /**
  * promise 化 回调直接结果
  * @param command
@@ -71,4 +75,206 @@ export function transaction(connection: any, sqls: Array<string>) {
         });
     });
   });
+}
+
+/**
+ * 导出 selectDbTreeNode 中库表的 数据结构
+ * @param exportConf
+ * @param conn
+ * @param tempDir
+ * @param selectDbTreeNode
+ */
+export async function handleExportStruct(
+  exportConf: ExportConf,
+  conn: Connection,
+  tempDir: string,
+  dbConf: ConnMysqlConf,
+  dbTreeList: Array<any>,
+): Promise<void> {
+  const {
+    isExportTableData,
+    isExportPureStruct,
+    isAutoCreateDb,
+    isForceUpdateDb,
+    isForceUpdateTable,
+  } = exportConf;
+
+  for (let i = 0; i < dbTreeList.length; i++) {
+    const dbInfo = dbTreeList[i];
+    // 拼接导出的表列表
+    const tableListStr = await getTableListStr(dbInfo, conn);
+    let createDbSql = '';
+
+    // 强制更新
+    if (isForceUpdateDb) {
+      createDbSql += `DROP DATABASE if EXISTS ${dbInfo.name}; \n`;
+    }
+
+    // 自动建库
+    if (isAutoCreateDb) {
+      // create db sql
+      createDbSql += await getCreateDbSql(dbInfo, conn);
+      // use db sql
+      createDbSql += `use ${dbInfo.name}; \n`;
+    }
+
+    // 导出结构
+    ExportStruct(
+      dbConf,
+      dbInfo,
+      exportConf,
+      tempDir,
+      tableListStr,
+      createDbSql,
+    );
+
+    // 导出数据
+    if (isExportTableData) ExportData(dbConf, dbInfo, tempDir, tableListStr);
+  }
+}
+
+/**
+ * 拼接配置表列表
+ * @param dbInfo
+ * @param conn
+ * @returns
+ */
+async function getTableListStr(dbInfo: any, conn: Connection): Promise<string> {
+  let tableListStr = '';
+  if (dbInfo.syncAllTable) {
+    // 表列表
+    const [res] = await conn.promise().query(`show tables from ${dbInfo.name}`);
+    // 处理成字符串列表
+    (res as Array<any>).forEach((table) => {
+      tableListStr += `${table['Tables_in_' + dbInfo.name]} `;
+    });
+  } else {
+    // 同步部分表
+    dbInfo.children.forEach((table) => {
+      tableListStr += `${table.name} `;
+    });
+  }
+
+  return tableListStr;
+}
+
+/**
+ *  获取创建数据库的sql
+ * @param dbInfo
+ * @param conn
+ * @returns
+ */
+async function getCreateDbSql(dbInfo: any, conn: Connection) {
+  // 查看源数据库的数据库编码
+  const [dbCreateSqlArr] = await conn
+    .promise()
+    .query(`show create database ${dbInfo.name}`);
+  return dbCreateSqlArr[0]['Create Database'] + ';\n';
+}
+
+/**
+ * 返回导出语句
+ * @param dbConf
+ * @param dbInfo
+ * @param exportConf
+ * @param tempDir
+ * @param tableListStr
+ * @returns
+ */
+async function ExportStruct(
+  dbConf: ConnMysqlConf,
+  dbInfo: any,
+  exportConf: ExportConf,
+  tempDir: string,
+  tableListStr: string,
+  createDbSql: string,
+): Promise<string> {
+  // 导出结构语句
+  // 是否添加 drop 语句}
+  const execComand = `mysqldump --host=${dbConf.host}  -u${dbConf.user} -p${
+    dbConf.password
+  } -P${dbConf.port} --databases ${
+    dbInfo.name
+  } --tables ${tableListStr} --no-data${
+    !exportConf.isForceUpdateTable ? ' --skip-add-drop-table ' : ''
+  } --skip-comments > ${tempDir}_${dbInfo.name}_struct.sql`;
+
+  // 执行导出操作
+  await execAsync(execComand);
+
+  // 处理导出的表结构
+  handleExportStructSql(
+    `${tempDir}_${dbInfo.name}_struct.sql`,
+    exportConf.isForceUpdateTable,
+    createDbSql,
+  );
+
+  // 返回导出的路径
+  return `${tempDir}_${dbInfo.name}_struct.sql`;
+}
+
+/**
+ * 导出数据
+ * @param dbConf
+ * @param dbInfo
+ * @param tempDir
+ * @param tableListStr
+ * @returns
+ */
+async function ExportData(
+  dbConf: ConnMysqlConf,
+  dbInfo: any,
+  tempDir: string,
+  tableListStr: string,
+): Promise<string> {
+  // 导出结构语句
+  const exportComandData = `mysqldump --host=${dbConf.host}  -u${dbConf.user} -p${dbConf.password}  -P${dbConf.port}  --databases ${dbInfo.name}  --tables ${tableListStr} --no-create-info > ${tempDir}_${dbInfo.name}_data.sql`;
+  //导出源库表结构 和 <数据>
+  await execAsync(exportComandData);
+
+  // 返回导出的路径
+  return `${tempDir}_${dbInfo.name}_data.sql`;
+}
+
+/**
+ * 修改默认的导出语句，添加创建db 和 替换 创建表的语句
+ * @param filePath
+ * @param sourceStr
+ * @param aimStr
+ */
+function handleExportStructSql(
+  filePath: string,
+  isForceUpdateTable,
+  createDbsql: string,
+) {
+  try {
+    let sqlStructStr = readFileSync(filePath, 'utf8');
+    // 不强制更新表
+    if (!isForceUpdateTable) {
+      let replacedStr = reaplaceCreateTableSql(
+        'CREATE TABLE',
+        'CREATE TABLE IF NOT EXISTS',
+        sqlStructStr,
+      );
+      replacedStr = createDbsql + replacedStr;
+      return writeFileSync(filePath, replacedStr);
+    }
+    // 强制更新表
+    sqlStructStr = createDbsql + sqlStructStr;
+    writeFileSync(filePath, sqlStructStr);
+  } catch (error) {
+    console.log(error);
+    return false;
+  }
+  return true;
+}
+
+/**
+ * 把 targetStr 中的 sourceStr  替换成 aimStr
+ * @param sourceStr
+ * @param aimStr
+ * @param targetStr
+ */
+function reaplaceCreateTableSql(sourceStr, aimStr, targetStr) {
+  return targetStr.replace(new RegExp(sourceStr, 'g'), aimStr);
 }

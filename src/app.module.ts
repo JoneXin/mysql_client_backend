@@ -4,6 +4,8 @@ import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConnModule } from './modules/connection/conn.moudel';
 import { DbModule } from './modules/database/db.moudel';
+import { WsModule } from './modules/ws/ws.module';
+import { FileModule } from './modules/file/file.module';
 @Module({
   imports: [
     TypeOrmModule.forRootAsync({
@@ -24,6 +26,8 @@ import { DbModule } from './modules/database/db.moudel';
     DbModule,
     TableModule,
     SysModule,
+    WsModule,
+    FileModule,
   ],
 })
 export class AppModule {}

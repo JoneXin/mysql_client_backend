@@ -3,10 +3,10 @@ import { ConnMysqlConf } from './../connection/conn.class';
 import { Injectable } from '@nestjs/common';
 import { Connection } from 'mysql2';
 import { ConnService } from '../connection/conn.service';
-import { DbQueryConfig } from './db.class';
+import { DbQueryConfig, ExportConf } from './db.class';
 import { join, resolve } from 'path';
 import { v4 as uuidv4 } from 'uuid';
-import { execAsync } from '../../utils/tool';
+import { execAsync, handleExportStruct } from '../../utils/tool';
 import { ensureDirSync, remove } from 'fs-extra';
 import { opendir } from 'fs/promises';
 @Injectable()
@@ -85,13 +85,48 @@ export class DbService {
   }
 
   /**
+   * 批量导出数据结构
+   * @param exportConf
+   * @returns
+   */
+  async exportDbStruct(exportConf: ExportConf): Promise<boolean> {
+    const {
+      connInfo,
+      dbTreeList,
+      isExportTableData,
+      isExportPureStruct,
+      isAutoCreateDb,
+      isForceUpdateDb,
+      isForceUpdateTable,
+    } = exportConf;
+
+    const curConn = this.getCurrentConnHandle(connInfo);
+    const path = resolve(this.getTempDir(), uuidv4());
+
+    handleExportStruct(
+      {
+        isExportTableData,
+        isExportPureStruct,
+        isAutoCreateDb,
+        isForceUpdateDb,
+        isForceUpdateTable,
+      },
+      curConn,
+      path,
+      connInfo,
+      dbTreeList,
+    );
+    return true;
+  }
+
+  /**
    * 导出.sql
    * @param syncObj
    * @param connOrigin
    * @param tempDir
    * @param dbCreaterMap
    */
-  async handleExportSql(syncObj, connOrigin, tempDir, dbCreaterMap) {
+  async handleExportSql(syncObj: SyncConf, connOrigin, tempDir, dbCreaterMap) {
     const { orginConnInfo, dbTreeList, isForceUpdate, isSyncTableData } =
       syncObj;
 
